@@ -1,26 +1,27 @@
-
 import React, { useState, useMemo } from 'react';
-import { JournalEntry, Goal } from '../types';
+import { JournalEntry, Goal, UserInfo } from '../types';
 import JournalEntryCard from './JournalEntryCard';
 import JournalEntryForm from './JournalEntryForm';
 import PlusIcon from './icons/PlusIcon';
-import { generatePortfolioPDF } from '../services/pdfGenerator';
-import { BIBLIOGRAPHY } from '../constants';
+import { generatePortfolioHTML } from '../services/pdfGenerator';
+import { getSentimentAnalysis } from '../services/geminiService';
 
 interface JournalViewProps {
   entries: JournalEntry[];
   goals: Goal[];
-  addEntry: (newEntry: Omit<JournalEntry, 'id'>) => void;
+  userInfo: UserInfo;
+  addEntry: (newEntry: JournalEntry) => void;
   updateEntry: (updatedEntry: JournalEntry) => void;
   deleteEntry: (id: string) => void;
 }
 
-const JournalView: React.FC<JournalViewProps> = ({ entries, goals, addEntry, updateEntry, deleteEntry }) => {
+const JournalView: React.FC<JournalViewProps> = ({ entries, goals, userInfo, addEntry, updateEntry, deleteEntry }) => {
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('');
   const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   const allTags = useMemo(() => {
     const tagsSet = new Set(entries.flatMap(e => e.tags));
@@ -41,14 +42,23 @@ const JournalView: React.FC<JournalViewProps> = ({ entries, goals, addEntry, upd
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [entries, searchTerm, selectedTag]);
 
-  const handleSave = (entryData: Omit<JournalEntry, 'id'>) => {
-    if (editingEntry) {
-      updateEntry({ ...editingEntry, ...entryData });
-    } else {
-      addEntry(entryData);
-    }
-    setEditingEntry(null);
-    setIsCreating(false);
+  const handleSave = async (entryData: Omit<JournalEntry, 'id' | 'sentimentAnalysis'>) => {
+      setIsSaving(true);
+      if (editingEntry) {
+          const entryToUpdate: JournalEntry = { ...editingEntry, ...entryData };
+          const analysis = await getSentimentAnalysis(entryToUpdate);
+          updateEntry({ ...entryToUpdate, sentimentAnalysis: analysis || undefined });
+      } else {
+          const newEntry: JournalEntry = { ...entryData, id: new Date().toISOString() + Math.random() };
+          addEntry(newEntry); // Add immediately for UI responsiveness
+          const analysis = await getSentimentAnalysis(newEntry);
+          if (analysis) {
+              updateEntry({ ...newEntry, sentimentAnalysis: analysis });
+          }
+      }
+      setIsSaving(false);
+      setEditingEntry(null);
+      setIsCreating(false);
   };
   
   const handleCancel = () => {
@@ -76,7 +86,25 @@ const JournalView: React.FC<JournalViewProps> = ({ entries, goals, addEntry, upd
   
   const handleGeneratePortfolio = () => {
     const entriesToExport = entries.filter(entry => selectedEntries.includes(entry.id));
-    generatePortfolioPDF(entriesToExport, BIBLIOGRAPHY);
+
+    // Calculate competency usage for exported entries
+    const competenciesUsageData: { [key: string]: number } = {};
+    entriesToExport.forEach(entry => {
+        if (entry.competencies) {
+            entry.competencies.forEach(compId => {
+                competenciesUsageData[compId] = (competenciesUsageData[compId] || 0) + 1;
+            });
+        }
+    });
+
+    const chartData = Object.entries(competenciesUsageData)
+        .map(([id, value]) => ({
+            label: id, // As requested: CFF2, C1, etc.
+            value
+        }))
+        .sort((a, b) => b.value - a.value);
+        
+    generatePortfolioHTML(entriesToExport, chartData, userInfo);
   };
 
   return (
@@ -87,6 +115,7 @@ const JournalView: React.FC<JournalViewProps> = ({ entries, goals, addEntry, upd
           goals={goals}
           onSave={handleSave}
           onCancel={handleCancel}
+          isSaving={isSaving}
         />
       ) : (
         <>

@@ -42,3 +42,32 @@ Las preguntas deben ser alentadoras, pedagógicas y ayudar a conectar la prácti
     return "Hubo un error al generar las sugerencias. Por favor, inténtalo de nuevo más tarde.";
   }
 };
+
+export const getSentimentAnalysis = async (data: JournalEntry): Promise<string | null> => {
+    if (!API_KEY) {
+        return null;
+    }
+
+    try {
+        const prompt = `Analiza el sentimiento de esta entrada de diario de un futuro docente. Considera su reflexión y su estado emocional declarado. Proporciona un análisis breve (1-2 frases), constructivo y alentador en español. Enfócate en identificar patrones, áreas de crecimiento o afirmaciones positivas. No uses markdown.
+
+- Reflexión: "${data.reflection}"
+- Estado Emocional: "${data.emotion || 'No especificado'}"
+
+Análisis:`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                temperature: 0.5,
+                maxOutputTokens: 150,
+            }
+        });
+
+        return response.text.trim();
+    } catch (error) {
+        console.error("Error fetching sentiment analysis from Gemini API:", error);
+        return "No se pudo generar el análisis de IA en este momento.";
+    }
+};

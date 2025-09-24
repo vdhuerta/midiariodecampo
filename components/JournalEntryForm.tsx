@@ -9,15 +9,17 @@ import QuestionMarkCircleIcon from './icons/QuestionMarkCircleIcon';
 interface JournalEntryFormProps {
   entry: JournalEntry | null;
   goals: Goal[];
-  onSave: (entryData: Omit<JournalEntry, 'id'>) => void;
+  onSave: (entryData: Omit<JournalEntry, 'id' | 'sentimentAnalysis'>) => void;
   onCancel: () => void;
+  isSaving: boolean;
 }
 
-const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSave, onCancel }) => {
+const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSave, onCancel, isSaving }) => {
   const [formData, setFormData] = useState({
     title: '',
     date: new Date().toISOString().split('T')[0],
     reflection: '',
+    emotion: '',
     skills: '',
     deontology: '',
     dimensions: '',
@@ -44,6 +46,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
         title: entry.title,
         date: new Date(entry.date).toISOString().split('T')[0],
         reflection: entry.reflection,
+        emotion: entry.emotion || '',
         skills: entry.skills,
         deontology: entry.deontology,
         dimensions: entry.dimensions,
@@ -61,6 +64,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
         title: '',
         date: new Date().toISOString().split('T')[0],
         reflection: '',
+        emotion: '',
         skills: '',
         deontology: '',
         dimensions: '',
@@ -253,6 +257,11 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
           <label htmlFor="reflection" className="block text-sm font-medium text-slate-700 mb-1">Reflexión Principal</label>
           <textarea id="reflection" name="reflection" value={formData.reflection} onChange={handleChange} placeholder="Describe la situación, tus pensamientos, sentimientos y lo que aprendiste..." className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" rows={10} required />
         </div>
+         <div>
+            <label htmlFor="emotion" className="block text-sm font-medium text-slate-700 mb-1">Estado Emocional</label>
+            <input id="emotion" name="emotion" type="text" value={formData.emotion} onChange={handleChange} placeholder="¿Cómo te sentiste? Ej: enérgico, frustrado, satisfecho" className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" />
+            <p className="text-xs text-slate-500 mt-1">Este dato ayudará a la IA a darte un mejor análisis.</p>
+        </div>
       </div>
       
       <div className="space-y-6">
@@ -426,8 +435,8 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
         <button type="button" onClick={onCancel} className="px-4 py-2 bg-white border border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-colors">
           Cancelar
         </button>
-        <button type="submit" className="px-4 py-2 bg-sky-600 text-white font-semibold rounded-lg hover:bg-sky-700 transition-colors shadow-sm">
-          {entry ? 'Actualizar Entrada' : 'Guardar Entrada'}
+        <button type="submit" disabled={isSaving} className="px-4 py-2 bg-sky-600 text-white font-semibold rounded-lg hover:bg-sky-700 transition-colors shadow-sm disabled:bg-sky-400 disabled:cursor-not-allowed">
+          {isSaving ? 'Guardando...' : (entry ? 'Actualizar Entrada' : 'Guardar Entrada')}
         </button>
       </div>
     </form>

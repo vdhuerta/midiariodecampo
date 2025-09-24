@@ -6,6 +6,7 @@ import TrashIcon from './icons/TrashIcon';
 import DownloadIcon from './icons/DownloadIcon';
 import Tag from './Tag';
 import { BIBLIOGRAPHY } from '../constants';
+import SparklesIcon from './icons/SparklesIcon';
 
 interface JournalEntryCardProps {
   entry: JournalEntry;
@@ -26,6 +27,7 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry, isSelected, 
   const handleExport = () => {
     let markdown = `# ${entry.title}\n\n`;
     markdown += `**Fecha:** ${formattedDate}\n\n`;
+    if (entry.emotion) markdown += `**Estado Emocional:** ${entry.emotion}\n\n`;
     markdown += `## Reflexión Principal\n${entry.reflection}\n\n`;
     if (entry.skills) markdown += `## Habilidades\n${entry.skills}\n\n`;
     if (entry.deontology) markdown += `## Deontología y Ethos\n${entry.deontology}\n\n`;
@@ -90,8 +92,14 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry, isSelected, 
           </p>
         </div>
       </div>
-       {(entry.tags.length > 0 || linkedBiblioAuthors || entry.supervisorFeedback) && (
+       {(entry.tags.length > 0 || linkedBiblioAuthors || entry.supervisorFeedback || entry.sentimentAnalysis) && (
           <div className="mt-4 pl-9 space-y-3">
+             {entry.sentimentAnalysis && (
+                <div className="flex items-start gap-2 bg-green-100 p-3 rounded-lg">
+                    <SparklesIcon className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-green-800">{entry.sentimentAnalysis}</p>
+                </div>
+              )}
              {entry.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {entry.tags.map(tag => <Tag key={tag} label={tag} />)}
@@ -101,7 +109,7 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry, isSelected, 
                 <p className="text-xs text-slate-500"><strong className="font-medium text-slate-600">Bibliografía:</strong> {linkedBiblioAuthors}</p>
               )}
                {entry.supervisorFeedback && (
-                <p className="text-xs text-slate-500 bg-green-100 p-2 rounded-md"><strong className="font-medium text-slate-600">Feedback:</strong> {entry.supervisorFeedback.substring(0, 150)}...</p>
+                <p className="text-xs text-slate-500 bg-amber-100 p-2 rounded-md"><strong className="font-medium text-slate-600">Feedback:</strong> {entry.supervisorFeedback.substring(0, 150)}...</p>
               )}
           </div>
        )}

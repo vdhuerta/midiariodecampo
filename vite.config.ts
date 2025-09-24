@@ -5,7 +5,8 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Carga las variables de entorno del entorno de construcción (como en Netlify)
-  const env = loadEnv(mode, process.cwd(), '');
+  // Fix: Replaced process.cwd() with '.' to resolve the TypeScript type error for 'process'.
+  const env = loadEnv(mode, '.', '');
 
   return {
     plugins: [react()],

@@ -1,4 +1,5 @@
 
+
 import React, { useMemo } from 'react';
 import { JournalEntry, Goal } from '../types';
 import { View } from '../App';
@@ -18,7 +19,8 @@ const StatsCard: React.FC<{ title: string; value: string | number; description: 
 );
 
 const TagCloud: React.FC<{ tags: { [key: string]: number } }> = ({ tags }) => {
-    const sortedTags = useMemo(() => Object.entries(tags).sort((a, b) => b[1] - a[1]).slice(0, 15), [tags]);
+    // FIX: Explicitly typing the sort callback arguments ensures they are treated as numbers, resolving a potential type inference issue.
+    const sortedTags = useMemo(() => Object.entries(tags).sort((a: [string, number], b: [string, number]) => b[1] - a[1]).slice(0, 15), [tags]);
     const maxCount = Math.max(...sortedTags.map(([, count]) => count), 1);
 
     const getFontSize = (count: number) => {

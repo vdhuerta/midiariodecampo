@@ -29,6 +29,10 @@ const ResourcesView: React.FC = () => {
           </div>
         ))}
       </div>
+      
+      <footer className="mt-12 text-center text-sm text-slate-500">
+        <p>Creado por Víctor Huerta © 2025</p>
+      </footer>
     </div>
   );
 };

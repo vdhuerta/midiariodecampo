@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { JournalEntry, Goal } from './types';
+import { JournalEntry, Goal, UserInfo } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import Sidebar from './components/Sidebar';
 import JournalView from './components/JournalView';
@@ -9,12 +9,14 @@ import ResourcesView from './components/ResourcesView';
 import ProgressView from './components/ProgressView';
 import Header from './components/Header';
 import DimensionesView from './components/DimensionesView';
+import Onboarding from './components/Onboarding';
 
 export type View = 'DASHBOARD' | 'JOURNAL' | 'GOALS' | 'RESOURCES' | 'PROGRESS' | 'DIMENSIONS';
 
 const App: React.FC = () => {
   const [entries, setEntries] = useLocalStorage<JournalEntry[]>('journalEntries', []);
   const [goals, setGoals] = useLocalStorage<Goal[]>('professionalGoals', []);
+  const [userInfo, setUserInfo] = useLocalStorage<UserInfo | null>('userInfo', null);
   const [currentView, setCurrentView] = useState<View>('DASHBOARD');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -50,8 +52,8 @@ const App: React.FC = () => {
   }, [entries, goals, setGoals]);
 
 
-  const addEntry = useCallback((newEntry: Omit<JournalEntry, 'id'>) => {
-    setEntries(prev => [{ ...newEntry, id: new Date().toISOString() + Math.random() }, ...prev]);
+  const addEntry = useCallback((newEntry: JournalEntry) => {
+    setEntries(prev => [newEntry, ...prev]);
   }, [setEntries]);
 
   const updateEntry = useCallback((updatedEntry: JournalEntry) => {
@@ -91,6 +93,7 @@ const App: React.FC = () => {
           <JournalView
             entries={entries}
             goals={goals}
+            userInfo={userInfo!}
             addEntry={addEntry}
             updateEntry={updateEntry}
             deleteEntry={deleteEntry}
@@ -109,16 +112,21 @@ const App: React.FC = () => {
     }
   };
 
+  if (!userInfo) {
+    return <Onboarding onComplete={setUserInfo} />;
+  }
+
   return (
     <div className="flex h-screen w-full bg-green-50 text-slate-900 overflow-hidden">
       <Sidebar 
         isSidebarOpen={isSidebarOpen} 
         currentView={currentView} 
         setView={handleSetView} 
-        closeSidebar={() => setIsSidebarOpen(false)} 
+        closeSidebar={() => setIsSidebarOpen(false)}
+        userInfo={userInfo}
       />
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Header toggleSidebar={toggleSidebar} />
+        <Header toggleSidebar={toggleSidebar} userInfo={userInfo} />
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {renderContent()}
         </main>

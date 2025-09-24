@@ -23,6 +23,8 @@ export interface JournalEntry {
   attachment?: Attachment;
   supervisorFeedback?: string;
   linkedBibliography?: string[];
+  emotion?: string;
+  sentimentAnalysis?: string;
 }
 
 export interface Goal {
@@ -30,4 +32,12 @@ export interface Goal {
   text: string;
   completed: boolean;
   progress: number;
+}
+
+export interface UserInfo {
+    name: string;
+    surname: string;
+    university: string;
+    subject: string;
+    academic: string;
 }

@@ -7,6 +7,7 @@ import ChartLineIcon from './icons/ChartLineIcon';
 import XIcon from './icons/XIcon';
 import ScaleIcon from './icons/ScaleIcon';
 import { View } from '../App';
+import { UserInfo } from '../types';
 
 
 interface SidebarProps {
@@ -14,9 +15,10 @@ interface SidebarProps {
   currentView: View;
   setView: (view: View) => void;
   closeSidebar: () => void;
+  userInfo: UserInfo;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, currentView, setView, closeSidebar }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, currentView, setView, closeSidebar, userInfo }) => {
   
   const NavItem: React.FC<{ view: View, label: string, icon: React.ReactNode }> = ({ view, label, icon }) => {
     const isActive = currentView === view;
@@ -57,7 +59,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, currentView, setView, 
             <div className="bg-rose-200 p-2 rounded-lg">
               <BookOpenIcon className="h-6 w-6 text-rose-700" />
             </div>
-            <h1 className="text-lg font-bold text-slate-800">Diario de Campo</h1>
+            <div>
+              <h1 className="text-lg font-bold text-slate-800">Diario de Campo</h1>
+              <p className="text-xs text-slate-600">{userInfo.name} {userInfo.surname}</p>
+            </div>
           </div>
           <button 
             onClick={closeSidebar} 
