@@ -8,8 +8,9 @@ import GoalsView from './components/GoalsView';
 import ResourcesView from './components/ResourcesView';
 import ProgressView from './components/ProgressView';
 import Header from './components/Header';
+import DimensionesView from './components/DimensionesView';
 
-export type View = 'DASHBOARD' | 'JOURNAL' | 'GOALS' | 'RESOURCES' | 'PROGRESS';
+export type View = 'DASHBOARD' | 'JOURNAL' | 'GOALS' | 'RESOURCES' | 'PROGRESS' | 'DIMENSIONS';
 
 const App: React.FC = () => {
   const [entries, setEntries] = useLocalStorage<JournalEntry[]>('journalEntries', []);
@@ -101,6 +102,8 @@ const App: React.FC = () => {
         return <ResourcesView />;
       case 'PROGRESS':
         return <ProgressView entries={entries} />;
+      case 'DIMENSIONS':
+        return <DimensionesView />;
       default:
         return <Dashboard setView={handleSetView} entries={entries} goals={goals} />;
     }

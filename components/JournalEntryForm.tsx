@@ -99,16 +99,35 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
+  const addTagsFromInput = (input: string) => {
+    const newTags = input.split(',')
+      .map(tag => tag.trim())
+      .filter(tag => tag !== '' && !formData.tags.includes(tag));
+    
+    if (newTags.length > 0) {
+      setFormData(prev => ({ ...prev, tags: [...prev.tags, ...newTags] }));
+    }
+    setTagInput('');
+  };
+
   const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setTagInput(value);
     if (value.includes(',')) {
-        const newTags = value.split(',')
-            .map(tag => tag.trim())
-            .filter(tag => tag !== '' && !formData.tags.includes(tag));
-        setFormData(prev => ({ ...prev, tags: [...prev.tags, ...newTags]}));
-        setTagInput('');
+      addTagsFromInput(value);
+    } else {
+      setTagInput(value);
     }
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTagsFromInput(tagInput);
+    }
+  };
+
+  const handleTagBlur = () => {
+    addTagsFromInput(tagInput);
   };
 
   const removeTag = (tagToRemove: string) => {
@@ -177,12 +196,24 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Create a final version of tags including any pending input
+    const finalTags = [...formData.tags];
+    if (tagInput.trim() !== '') {
+        const newTagsFromInput = tagInput.split(',')
+            .map(tag => tag.trim())
+            .filter(tag => tag !== '' && !finalTags.includes(tag));
+        finalTags.push(...newTagsFromInput);
+    }
+
     if (formData.title.trim() && formData.reflection.trim()) {
       onSave({ 
         ...formData,
+        tags: finalTags,
         date: new Date(formData.date + 'T00:00:00.000Z').toISOString(),
         attachment,
       });
+      setTagInput('');
     }
   };
   
@@ -281,7 +312,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
       <div className="space-y-6">
         <h2 className="text-xl font-semibold text-slate-800 border-b border-slate-200 pb-3">Organización y Conexiones</h2>
         <div>
-            <label htmlFor="tags" className="block text-sm font-medium text-slate-700 mb-1">Etiquetas (separadas por coma)</label>
+            <label htmlFor="tags" className="block text-sm font-medium text-slate-700 mb-1">Etiquetas (separadas por coma o Enter)</label>
             <div className="flex flex-wrap gap-2 items-center p-2 border border-slate-300 rounded-lg">
                 {formData.tags.map(tag => (
                     <span key={tag} className="flex items-center gap-1 bg-sky-100 text-sky-800 text-xs font-medium px-2 py-1 rounded-full">
@@ -289,7 +320,16 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
                         <button type="button" onClick={() => removeTag(tag)} className="text-sky-600 hover:text-sky-800">&times;</button>
                     </span>
                 ))}
-                <input id="tags" type="text" value={tagInput} onChange={handleTagChange} placeholder="Añadir etiqueta..." className="flex-1 bg-transparent outline-none p-1 min-w-[120px]" />
+                <input 
+                    id="tags" 
+                    type="text" 
+                    value={tagInput} 
+                    onChange={handleTagChange}
+                    onKeyDown={handleTagKeyDown}
+                    onBlur={handleTagBlur}
+                    placeholder="Añadir etiqueta..." 
+                    className="flex-1 bg-transparent outline-none p-1 min-w-[120px]" 
+                />
             </div>
         </div>
         <div>
@@ -363,6 +403,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
                   <img src={attachment.data} alt="Preview" className="h-10 w-10 object-cover rounded" />
                   <span className="text-sm text-slate-500">{attachment.name}</span>
                   <button type="button" onClick={() => setAttachment(undefined)} className="text-red-500 hover:text-red-700 text-xl">&times;</button>
+
               </div>
             )}
           </div>

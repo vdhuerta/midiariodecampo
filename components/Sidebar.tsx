@@ -5,6 +5,7 @@ import LibraryIcon from './icons/LibraryIcon';
 import HomeIcon from './icons/HomeIcon';
 import ChartLineIcon from './icons/ChartLineIcon';
 import XIcon from './icons/XIcon';
+import ScaleIcon from './icons/ScaleIcon';
 import { View } from '../App';
 
 
@@ -69,8 +70,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, currentView, setView, 
         <nav className="flex-1 flex flex-col space-y-1">
           <NavItem view="DASHBOARD" label="Inicio" icon={<HomeIcon className="h-5 w-5" />} />
           <NavItem view="JOURNAL" label="Diario de Campo" icon={<BookOpenIcon className="h-5 w-5" />} />
-          <NavItem view="PROGRESS" label="Progreso" icon={<ChartLineIcon className="h-5 w-5" />} />
           <NavItem view="GOALS" label="Metas Profesionales" icon={<TargetIcon className="h-5 w-5" />} />
+          <NavItem view="PROGRESS" label="Progreso" icon={<ChartLineIcon className="h-5 w-5" />} />
+          <NavItem view="DIMENSIONS" label="Dimensiones" icon={<ScaleIcon className="h-5 w-5" />} />
           <NavItem view="RESOURCES" label="Recursos" icon={<LibraryIcon className="h-5 w-5" />} />
         </nav>
       </aside>
