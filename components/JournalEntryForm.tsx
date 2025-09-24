@@ -14,6 +14,28 @@ interface JournalEntryFormProps {
   isSaving: boolean;
 }
 
+const EXAMPLE_ENTRY_DATA = {
+    title: 'Conflicto en Balonmano: Tensión entre Competitividad y Juego Limpio',
+    date: '2024-10-23',
+    reflection: `Hoy la clase de balonmano con el 7°B fue increíblemente intensa. El partido final estaba muy parejo y la competitividad se sentía en el aire. En la última jugada, Javier, uno de los estudiantes más hábiles pero también más impulsivos, le hizo una falta evidente a Sofía para quitarle el balón y anotar el gol de la victoria. La falta fue sutil, no la vi claramente en el momento, pero la reacción de Sofía y de su equipo fue inmediata.
+
+Se generó un momento de alta tensión. El equipo de Sofía reclamaba "¡Falta! ¡Eso no es justo!" mientras el equipo de Javier celebraba efusivamente. Vi cómo la clase se polarizaba. Decidí detener todo inmediatamente.
+
+Pausé el juego y reuní a los dos equipos en el centro. En lugar de tomar una decisión autoritaria, le pedí a Sofía que explicara cómo se sintió. Con voz temblorosa dijo que se sintió "engañada" y que no era justo ganar así. Luego, me dirigí a Javier y, sin acusarlo, le pregunté qué había pasado desde su perspectiva y si creía que la jugada había sido limpia. Tras un momento de silencio, y viendo la cara de sus compañeros, Javier admitió a regañadientes que sí, la había empujado un poco.
+
+Este fue el punto de inflexión. No lo castigué, sino que abrí una breve conversación con toda la clase: "¿Qué es más importante en un juego aquí en la escuela: ganar a toda costa o respetar las reglas y a los compañeros?". La mayoría convergió en lo segundo. Acordamos anular el gol y repetir la última jugada. El ambiente cambió por completo. Aunque el equipo de Javier terminó perdiendo, al final se dieron la mano con otra actitud. Fue un momento de aprendizaje que trascendió completamente el balonmano.`,
+    emotion: 'Inicialmente tenso y preocupado, luego satisfecho y aliviado.',
+    skills: 'Desarrolladas por mí: Mediación de conflictos, comunicación asertiva, escucha activa, gestión del clima de aula, inteligencia emocional.\n\nObservadas en estudiantes: Competitividad exacerbada, frustración, honestidad, asertividad y empatía.',
+    deontology: 'Se aplicó el principio de equidad al no validar una victoria injusta y proteger la seguridad emocional de Sofía (Deontología). Mi rol fue de mediador y facilitador, transformando el conflicto en una instancia formativa (Ethos).',
+    dimensions: 'Dominio B: Creación de un ambiente propicio para el aprendizaje (restauré un clima de respeto y seguridad).\n\nDominio D: Responsabilidades profesionales (la misma acción de reflexionar en este diario es un ejercicio de este dominio).',
+    tags: ['conflicto', 'juego limpio', 'balonmano', '7mo básico', 'habilidades socioemocionales', 'ética deportiva'],
+    competencies: ['CFF2', 'CFF5', 'C9'],
+    linkedGoals: [],
+    supervisorFeedback: 'Excelente manejo de la situación. Transformaste un momento de tensión en una valiosa lección sobre ética deportiva. En lugar de sancionar, facilitaste un diálogo que llevó a los propios estudiantes a la reflexión. Bien visto.',
+    linkedBibliography: ['rojas-2011'],
+};
+
+
 const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSave, onCancel, isSaving }) => {
   const [formData, setFormData] = useState({
     title: '',
@@ -36,9 +58,12 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
   const [showSkillsHelp, setShowSkillsHelp] = useState(false);
   const [showDeontologyHelp, setShowDeontologyHelp] = useState(false);
   const [showDimensionsHelp, setShowDimensionsHelp] = useState(false);
+  
+  // Refs for help popups and focus management
   const skillsHelpRef = useRef<HTMLDivElement>(null);
   const deontologyHelpRef = useRef<HTMLDivElement>(null);
   const dimensionsHelpRef = useRef<HTMLDivElement>(null);
+  const fileInputLabelRef = useRef<HTMLLabelElement>(null);
 
   useEffect(() => {
     if (entry) {
@@ -96,7 +121,14 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [skillsHelpRef, deontologyHelpRef, dimensionsHelpRef]);
+  }, []);
+
+  // Effect to prevent screen jumping on file upload by refocusing the label
+  useEffect(() => {
+    if (attachment && entry?.attachment?.data !== attachment.data) {
+        fileInputLabelRef.current?.focus();
+    }
+  }, [attachment, entry]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -236,19 +268,35 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
     setIsAiLoading(false);
   };
 
+  const handleLoadExample = () => {
+    setFormData(EXAMPLE_ENTRY_DATA);
+    setTagInput('');
+    setAttachment(undefined);
+    setAiPrompts('');
+  };
+
   const activeGoals = goals.filter(g => !g.completed || (entry?.linkedGoals.some(lg => lg.goalId === g.id)));
 
   return (
     <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-8 mb-8">
       
       <div className="space-y-6">
-        <h2 className="text-xl font-semibold text-slate-800 border-b border-slate-200 pb-3">Detalles de la Entrada</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2">
+        <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+            <h2 className="text-xl font-semibold text-slate-800">Detalles de la Entrada</h2>
+            <button
+                type="button"
+                onClick={handleLoadExample}
+                className="bg-sky-100 text-sky-700 text-sm font-semibold px-3 py-1 rounded-md hover:bg-sky-200 transition-colors"
+            >
+                Ejemplo
+            </button>
+        </div>
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="w-full md:w-2/3">
             <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">Título</label>
             <input id="title" name="title" type="text" value={formData.title} onChange={handleChange} placeholder="Ej: Desafío en la clase de voleibol" className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" required />
           </div>
-          <div>
+          <div className="w-full md:w-1/3">
             <label htmlFor="date" className="block text-sm font-medium text-slate-700 mb-1">Fecha</label>
             <input id="date" name="date" type="date" value={formData.date} onChange={handleChange} className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" required />
           </div>
@@ -402,7 +450,12 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
             <textarea id="supervisorFeedback" name="supervisorFeedback" value={formData.supervisorFeedback} onChange={handleChange} placeholder="Pega aquí los comentarios o feedback recibido por parte de tu supervisor o mentor..." className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" rows={4} />
           </div>
           <div className="flex items-center gap-4">
-            <label htmlFor="file-upload" className="cursor-pointer flex items-center gap-2 bg-white border border-slate-300 text-slate-700 font-semibold px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors">
+            <label 
+              htmlFor="file-upload" 
+              ref={fileInputLabelRef}
+              tabIndex={-1}
+              className="cursor-pointer flex items-center gap-2 bg-white border border-slate-300 text-slate-700 font-semibold px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors outline-none focus:ring-2 focus:ring-sky-500"
+            >
               <PaperClipIcon className="h-5 w-5"/>
               <span>{attachment ? 'Cambiar Imagen' : 'Adjuntar Imagen'}</span>
             </label>
