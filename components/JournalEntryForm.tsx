@@ -291,12 +291,12 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
                 Ejemplo
             </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:grid md:grid-cols-3 md:gap-6">
           <div className="md:col-span-2">
             <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">Título</label>
             <input id="title" name="title" type="text" value={formData.title} onChange={handleChange} placeholder="Ej: Desafío en la clase de voleibol" className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" required />
           </div>
-          <div>
+          <div className="mt-6 md:mt-0">
             <label htmlFor="date" className="block text-sm font-medium text-slate-700 mb-1">Fecha</label>
             <input id="date" name="date" type="date" value={formData.date} onChange={handleChange} className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" required />
           </div>
