@@ -292,11 +292,11 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
             </button>
         </div>
         <div className="flex flex-col md:flex-row gap-6">
-          <div className="w-full md:w-2/3">
+          <div className="flex-1">
             <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">Título</label>
             <input id="title" name="title" type="text" value={formData.title} onChange={handleChange} placeholder="Ej: Desafío en la clase de voleibol" className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" required />
           </div>
-          <div className="w-full md:w-1/3">
+          <div className="md:w-1/3">
             <label htmlFor="date" className="block text-sm font-medium text-slate-700 mb-1">Fecha</label>
             <input id="date" name="date" type="date" value={formData.date} onChange={handleChange} className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" required />
           </div>
