@@ -1,8 +1,7 @@
-
-
 import React, { useMemo } from 'react';
 import { JournalEntry, Goal } from '../types';
 import { View } from '../App';
+import DevicePhoneMobileIcon from './icons/DevicePhoneMobileIcon';
 
 interface DashboardProps {
   setView: (view: View) => void;
@@ -73,6 +72,22 @@ const Dashboard: React.FC<DashboardProps> = ({ setView, entries, goals }) => {
                 </p>
             </div>
             
+            <div className="bg-sky-100 p-6 rounded-xl shadow-sm border border-sky-200 flex flex-col sm:flex-row items-center gap-6">
+                <div className="flex-shrink-0">
+                    <DevicePhoneMobileIcon className="h-12 w-12 text-sky-600" />
+                </div>
+                <div className="flex-grow text-center sm:text-left">
+                    <h2 className="text-lg font-semibold text-sky-800">Lleva tu Diario a todas partes</h2>
+                    <p className="text-sky-700 mt-1">Instala la aplicación en tu teléfono para un acceso rápido y una experiencia de pantalla completa.</p>
+                </div>
+                <button
+                    onClick={() => setView('ADD_AS_APP')}
+                    className="w-full sm:w-auto flex-shrink-0 bg-sky-600 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-sky-700 transition-colors shadow-sm"
+                >
+                    Ver instrucciones
+                </button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <StatsCard title="Entradas Totales" value={stats.totalEntries} description="Reflexiones sobre tu práctica" />
                 <StatsCard title="Metas Completadas" value={`${stats.completedGoals} / ${goals.length}`} description="Objetivos de desarrollo profesional" />

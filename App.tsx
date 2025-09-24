@@ -10,8 +10,9 @@ import ProgressView from './components/ProgressView';
 import Header from './components/Header';
 import DimensionesView from './components/DimensionesView';
 import Onboarding from './components/Onboarding';
+import AddAsAppView from './components/AddAsAppView';
 
-export type View = 'DASHBOARD' | 'JOURNAL' | 'GOALS' | 'RESOURCES' | 'PROGRESS' | 'DIMENSIONS';
+export type View = 'DASHBOARD' | 'JOURNAL' | 'GOALS' | 'RESOURCES' | 'PROGRESS' | 'DIMENSIONS' | 'ADD_AS_APP';
 
 const App: React.FC = () => {
   const [entries, setEntries] = useLocalStorage<JournalEntry[]>('journalEntries', []);
@@ -107,6 +108,8 @@ const App: React.FC = () => {
         return <ProgressView entries={entries} />;
       case 'DIMENSIONS':
         return <DimensionesView />;
+      case 'ADD_AS_APP':
+        return <AddAsAppView />;
       default:
         return <Dashboard setView={handleSetView} entries={entries} goals={goals} />;
     }

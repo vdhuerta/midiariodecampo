@@ -8,6 +8,7 @@ import XIcon from './icons/XIcon';
 import ScaleIcon from './icons/ScaleIcon';
 import { View } from '../App';
 import { UserInfo } from '../types';
+import DevicePhoneMobileIcon from './icons/DevicePhoneMobileIcon';
 
 
 interface SidebarProps {
@@ -78,6 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, currentView, setView, 
           <NavItem view="GOALS" label="Metas Profesionales" icon={<TargetIcon className="h-5 w-5" />} />
           <NavItem view="PROGRESS" label="Progreso" icon={<ChartLineIcon className="h-5 w-5" />} />
           <NavItem view="DIMENSIONS" label="Dimensiones" icon={<ScaleIcon className="h-5 w-5" />} />
+          <NavItem view="ADD_AS_APP" label="Agregar como APP" icon={<DevicePhoneMobileIcon className="h-5 w-5" />} />
           <NavItem view="RESOURCES" label="Recursos" icon={<LibraryIcon className="h-5 w-5" />} />
         </nav>
       </aside>
