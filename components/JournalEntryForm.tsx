@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { JournalEntry, Goal, Attachment, LinkedGoal } from '../types';
 import { getReflectionPrompts } from '../services/geminiService';
 import SparklesIcon from './icons/SparklesIcon';
@@ -8,6 +8,7 @@ import QuestionMarkCircleIcon from './icons/QuestionMarkCircleIcon';
 
 interface JournalEntryFormProps {
   entry: JournalEntry | null;
+  entries: JournalEntry[];
   goals: Goal[];
   onSave: (entryData: Omit<JournalEntry, 'id' | 'sentimentAnalysis'>) => void;
   onCancel: () => void;
@@ -36,7 +37,7 @@ Este fue el punto de inflexión. No lo castigué, sino que abrí una breve conve
 };
 
 
-const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSave, onCancel, isSaving }) => {
+const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, entries, goals, onSave, onCancel, isSaving }) => {
   const [formData, setFormData] = useState({
     title: '',
     date: new Date().toISOString().split('T')[0],
@@ -58,12 +59,34 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
   const [showSkillsHelp, setShowSkillsHelp] = useState(false);
   const [showDeontologyHelp, setShowDeontologyHelp] = useState(false);
   const [showDimensionsHelp, setShowDimensionsHelp] = useState(false);
+  const [isTagInputFocused, setIsTagInputFocused] = useState(false);
+  const [autocompleteTags, setAutocompleteTags] = useState<string[]>([]);
   
   // Refs for help popups and focus management
   const skillsHelpRef = useRef<HTMLDivElement>(null);
   const deontologyHelpRef = useRef<HTMLDivElement>(null);
   const dimensionsHelpRef = useRef<HTMLDivElement>(null);
   const fileInputLabelRef = useRef<HTMLLabelElement>(null);
+  
+    const allUniqueTags = useMemo(() => {
+        const tagsSet = new Set(entries.flatMap(e => e.tags));
+        return Array.from(tagsSet).sort();
+    }, [entries]);
+
+    const frequentTags = useMemo(() => {
+        if (entries.length === 0) return [];
+        const tagCounts = entries.flatMap(e => e.tags).reduce((acc, tag) => {
+            acc[tag] = (acc[tag] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+
+        return Object.entries(tagCounts)
+            // FIX: Explicitly typed the sort parameters to ensure TypeScript correctly infers them as numbers for the arithmetic operation.
+            .sort((a: [string, number], b: [string, number]) => b[1] - a[1])
+            .slice(0, 8)
+            .map(([tag]) => tag);
+    }, [entries]);
+
 
   useEffect(() => {
     if (entry) {
@@ -137,13 +160,14 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
   
   const addTagsFromInput = (input: string) => {
     const newTags = input.split(',')
-      .map(tag => tag.trim())
+      .map(tag => tag.trim().toLowerCase())
       .filter(tag => tag !== '' && !formData.tags.includes(tag));
     
     if (newTags.length > 0) {
       setFormData(prev => ({ ...prev, tags: [...prev.tags, ...newTags] }));
     }
     setTagInput('');
+    setAutocompleteTags([]);
   };
 
   const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,6 +176,15 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
       addTagsFromInput(value);
     } else {
       setTagInput(value);
+      if (value) {
+        setAutocompleteTags(
+          allUniqueTags.filter(tag => 
+            tag.toLowerCase().includes(value.toLowerCase()) && !formData.tags.includes(tag)
+          ).slice(0, 5)
+        );
+      } else {
+        setAutocompleteTags([]);
+      }
     }
   };
 
@@ -162,8 +195,22 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
     }
   };
 
+  const handleTagFocus = () => {
+    setIsTagInputFocused(true);
+  };
+  
   const handleTagBlur = () => {
+    // Delay to allow clicking on suggestions
+    setTimeout(() => {
+      setIsTagInputFocused(false);
+    }, 150);
     addTagsFromInput(tagInput);
+  };
+
+  const handleSuggestionClick = (tag: string) => {
+      setFormData(prev => ({ ...prev, tags: [...new Set([...prev.tags, tag])] }));
+      setTagInput('');
+      setAutocompleteTags([]);
   };
 
   const removeTag = (tagToRemove: string) => {
@@ -237,7 +284,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
     const finalTags = [...formData.tags];
     if (tagInput.trim() !== '') {
         const newTagsFromInput = tagInput.split(',')
-            .map(tag => tag.trim())
+            .map(tag => tag.trim().toLowerCase())
             .filter(tag => tag !== '' && !finalTags.includes(tag));
         finalTags.push(...newTagsFromInput);
     }
@@ -245,7 +292,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
     if (formData.title.trim() && formData.reflection.trim()) {
       onSave({ 
         ...formData,
-        tags: finalTags,
+        tags: [...new Set(finalTags)],
         date: new Date(formData.date + 'T00:00:00.000Z').toISOString(),
         attachment,
       });
@@ -325,8 +372,16 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
                 </button>
               </div>
                {showSkillsHelp && (
-                <div className="absolute bottom-full left-0 mb-2 w-full max-w-xs p-3 bg-slate-800 text-white text-sm rounded-lg shadow-lg z-10">
-                  Ej. Trabajo en Equipo, Comunicación, Resiliencia, Empatía, Autoconciencia, Deportividad, etc.
+                <div className="absolute bottom-full left-0 mb-2 w-80 p-4 bg-slate-800 text-white text-sm rounded-lg shadow-lg z-10">
+                  <h4 className="font-bold text-base mb-2">Habilidades Docentes y Socioemocionales</h4>
+                  <p className="mb-3">Capacidades puestas en práctica o observadas para gestionar la clase y relaciones interpersonales.</p>
+                  <ul className="list-disc list-inside space-y-1 text-xs">
+                    <li>Mediación de conflictos</li>
+                    <li>Comunicación asertiva</li>
+                    <li>Escucha activa</li>
+                    <li>Inteligencia emocional</li>
+                    <li>Liderazgo y resiliencia</li>
+                  </ul>
                 </div>
               )}
               <textarea id="skills" name="skills" value={formData.skills} onChange={handleChange} placeholder="¿Qué habilidades pusiste en práctica?" className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" rows={4}/>
@@ -339,8 +394,14 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
                 </button>
               </div>
                {showDeontologyHelp && (
-                <div className="absolute bottom-full left-0 mb-2 w-full max-w-xs p-3 bg-slate-800 text-white text-sm rounded-lg shadow-lg z-10">
-                  Ej. Respeto a la diversidad, manejo confidencial de información, promoción del juego limpio, seguridad del alumnado, equidad en el trato.
+                <div className="absolute bottom-full left-0 mb-2 w-80 p-4 bg-slate-800 text-white text-sm rounded-lg shadow-lg z-10">
+                  <h4 className="font-bold text-base mb-2">Deontología y Ethos Docente</h4>
+                  <p className="mb-3">Reflexión sobre los deberes éticos (Deontología) y el carácter/valores (Ethos) que guían tu actuar profesional.</p>
+                  <ul className="list-disc list-inside space-y-1 text-xs">
+                    <li><strong>Deontología:</strong> Juego limpio, equidad, seguridad, confidencialidad.</li>
+                    <li><strong>Ethos:</strong> Modelar resiliencia, ser un facilitador, actuar con justicia.</li>
+                  </ul>
+                  <p className="text-xs mt-3 opacity-80">Para más detalles, consulta la sección 'Dimensiones' en el menú principal.</p>
                 </div>
               )}
               <textarea id="deontology" name="deontology" value={formData.deontology} onChange={handleChange} placeholder="¿Qué principios éticos entraron en juego?" className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" rows={4}/>
@@ -353,14 +414,16 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
                 </button>
               </div>
                {showDimensionsHelp && (
-                <div className="absolute bottom-full left-0 mb-2 w-full max-w-sm p-3 bg-slate-800 text-white text-sm rounded-lg shadow-lg z-10">
-                  <p className="font-semibold mb-1">Marco para la Buena Enseñanza:</p>
+                <div className="absolute bottom-full left-0 mb-2 w-80 p-4 bg-slate-800 text-white text-sm rounded-lg shadow-lg z-10">
+                  <h4 className="font-bold text-base mb-2">Dimensiones (MBE)</h4>
+                  <p className="mb-3">Categorías del Marco para la Buena Enseñanza (MBE) que se evidencian en la situación.</p>
                   <ul className="list-disc list-inside space-y-1 text-xs">
-                    <li>A: Preparación de la enseñanza.</li>
-                    <li>B: Creación de un ambiente propicio para el aprendizaje.</li>
-                    <li>C: Enseñanza para el aprendizaje de todos los estudiantes.</li>
-                    <li>D: Responsabilidades profesionales.</li>
+                    <li><strong>A:</strong> Preparación de la enseñanza.</li>
+                    <li><strong>B:</strong> Creación de un ambiente propicio.</li>
+                    <li><strong>C:</strong> Enseñanza para el aprendizaje de todos.</li>
+                    <li><strong>D:</strong> Responsabilidades profesionales.</li>
                   </ul>
+                   <p className="text-xs mt-3 opacity-80">Para más detalles, consulta la sección 'Dimensiones' en el menú principal.</p>
                 </div>
               )}
               <textarea id="dimensions" name="dimensions" value={formData.dimensions} onChange={handleChange} placeholder="¿Qué dimensiones observaste?" className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none" rows={4}/>
@@ -370,9 +433,9 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
 
       <div className="space-y-6">
         <h2 className="text-xl font-semibold text-slate-800 border-b border-slate-200 pb-3">Organización y Conexiones</h2>
-        <div>
+        <div className="relative">
             <label htmlFor="tags" className="block text-sm font-medium text-slate-700 mb-1">Etiquetas (separadas por coma o Enter)</label>
-            <div className="flex flex-wrap gap-2 items-center p-2 border border-slate-300 rounded-lg">
+            <div className="flex flex-wrap gap-2 items-center p-2 border border-slate-300 rounded-lg bg-white focus-within:ring-2 focus-within:ring-sky-500 focus-within:border-sky-500">
                 {formData.tags.map(tag => (
                     <span key={tag} className="flex items-center gap-1 bg-sky-100 text-sky-800 text-xs font-medium px-2 py-1 rounded-full">
                         {tag}
@@ -385,11 +448,37 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({ entry, goals, onSav
                     value={tagInput} 
                     onChange={handleTagChange}
                     onKeyDown={handleTagKeyDown}
+                    onFocus={handleTagFocus}
                     onBlur={handleTagBlur}
                     placeholder="Añadir etiqueta..." 
                     className="flex-1 bg-transparent outline-none p-1 min-w-[120px]" 
                 />
             </div>
+             {isTagInputFocused && (
+              <div className="absolute top-full left-0 w-full bg-white border border-slate-300 rounded-md shadow-lg z-20 mt-1 max-h-60 overflow-y-auto">
+                {tagInput.length > 0 && autocompleteTags.length > 0 && (
+                  <ul>
+                    {autocompleteTags.map(tag => (
+                      <li key={tag} onMouseDown={() => handleSuggestionClick(tag)} className="px-3 py-2 text-sm cursor-pointer hover:bg-slate-100">
+                        {tag}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {tagInput.length === 0 && frequentTags.length > 0 && (
+                  <div className="p-3">
+                    <p className="text-xs font-semibold text-slate-500 mb-2">ETIQUETAS FRECUENTES</p>
+                    <div className="flex flex-wrap gap-2">
+                      {frequentTags.map(tag => (
+                        <button type="button" key={tag} onMouseDown={() => handleSuggestionClick(tag)} className="bg-sky-100 text-sky-800 text-xs font-medium px-2 py-1 rounded-full hover:bg-sky-200">
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
         </div>
         <div>
             <p className="block text-sm font-medium text-slate-700 mb-2">Competencias Vinculadas</p>

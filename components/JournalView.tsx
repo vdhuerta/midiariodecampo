@@ -121,6 +121,7 @@ const JournalView: React.FC<JournalViewProps> = ({ entries, goals, userInfo, add
           onSave={handleSave}
           onCancel={handleCancel}
           isSaving={isSaving}
+          entries={entries}
         />
       ) : (
         <>
