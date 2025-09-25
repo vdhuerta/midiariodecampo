@@ -36,7 +36,13 @@ Las preguntas deben ser alentadoras, pedagógicas y ayudar a conectar la prácti
       contents: prompt,
     });
     
-    return response.text;
+    const text = response.text;
+    if (text) {
+      return text;
+    }
+    
+    console.warn("Gemini API returned no text for reflection prompts, response might have been blocked.");
+    return "Hubo un error al generar las sugerencias. Por favor, inténtalo de nuevo más tarde.";
   } catch (error) {
     console.error("Error fetching reflection prompts from Gemini API:", error);
     return "Hubo un error al generar las sugerencias. Por favor, inténtalo de nuevo más tarde.";
@@ -65,7 +71,13 @@ Análisis:`;
             }
         });
 
-        return response.text.trim();
+        const text = response.text;
+        if (text) {
+            return text.trim();
+        }
+        
+        console.warn("Gemini API returned no text for sentiment analysis, response might have been blocked.");
+        return "No se pudo generar el análisis de IA en este momento.";
     } catch (error) {
         console.error("Error fetching sentiment analysis from Gemini API:", error);
         return "No se pudo generar el análisis de IA en este momento.";

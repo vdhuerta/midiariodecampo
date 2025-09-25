@@ -18,21 +18,58 @@ const StatsCard: React.FC<{ title: string; value: string | number; description: 
 );
 
 const TagCloud: React.FC<{ tags: { [key: string]: number } }> = ({ tags }) => {
-    // FIX: Explicitly typing the sort callback arguments ensures they are treated as numbers, resolving a potential type inference issue.
-    const sortedTags = useMemo(() => Object.entries(tags).sort((a: [string, number], b: [string, number]) => b[1] - a[1]).slice(0, 15), [tags]);
+    const sortedTags = useMemo(() => Object.entries(tags).sort((a: [string, number], b: [string, number]) => b[1] - a[1]).slice(0, 25), [tags]);
     const maxCount = Math.max(...sortedTags.map(([, count]) => count), 1);
+    const minCount = Math.min(...sortedTags.map(([, count]) => count), 1);
 
-    const getFontSize = (count: number) => {
-        const size = 0.75 + (count / maxCount) * 1.25; // from 0.75rem to 2rem
-        return `${Math.max(size, 0.85)}rem`;
+    const getDynamicStyle = (count: number): React.CSSProperties => {
+        const range = maxCount - minCount;
+        const normalizedCount = range > 0 ? (count - minCount) / range : 0.5;
+        
+        // Font size from ~10px to ~20px
+        const fontSize = 0.65 + normalizedCount * 0.6; // from 0.65rem to 1.25rem
+        return {
+            fontSize: `${fontSize.toFixed(2)}rem`,
+        };
+    };
+
+    const getColorClass = (tag: string): string => {
+        const colors = [
+            'bg-sky-100 text-sky-800 border-sky-200',
+            'bg-rose-100 text-rose-800 border-rose-200',
+            'bg-green-100 text-green-800 border-green-200',
+            'bg-amber-100 text-amber-800 border-amber-200',
+            'bg-indigo-100 text-indigo-800 border-indigo-200',
+            'bg-pink-100 text-pink-800 border-pink-200',
+            'bg-purple-100 text-purple-800 border-purple-200',
+            'bg-teal-100 text-teal-800 border-teal-200',
+            'bg-lime-100 text-lime-800 border-lime-200',
+            'bg-cyan-100 text-cyan-800 border-cyan-200',
+        ];
+        
+        let hash = 0;
+        if (tag.length === 0) return colors[0];
+        for (let i = 0; i < tag.length; i++) {
+            const char = tag.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        
+        const index = Math.abs(hash % colors.length);
+        return colors[index];
     };
 
     return (
-        <div className="flex flex-wrap gap-x-3 gap-y-2 items-center">
+        <div className="flex flex-wrap gap-3 items-center">
             {sortedTags.map(([tag, count]) => (
-                <span key={tag} className="text-slate-600" style={{ fontSize: getFontSize(count) }}>
-                    {tag}
-                </span>
+                <div 
+                    key={tag} 
+                    className={`flex items-baseline gap-1.5 font-medium px-3 py-1.5 rounded-full border transition-all duration-300 ${getColorClass(tag)}`}
+                    style={getDynamicStyle(count)}
+                >
+                    <span>{tag}</span>
+                    <span className="font-semibold text-[0.7em] opacity-80">{count}</span>
+                </div>
             ))}
         </div>
     );
@@ -60,9 +97,9 @@ const Dashboard: React.FC<DashboardProps> = ({ setView, entries, goals }) => {
         <div className="max-w-5xl mx-auto space-y-8">
             <div className="overflow-hidden rounded-xl shadow-lg">
                 <img 
-                    src="https://raw.githubusercontent.com/vdhuerta/assets-aplications/main/Diario%20de%20Campo.jpg" 
+                    src="https://raw.githubusercontent.com/vdhuerta/assets-aplications/main/Intro_MiDiario.png" 
                     alt="Cabecera de Diario de Campo"
-                    className="w-full h-48 md:h-64 object-cover opacity-70"
+                    className="w-full h-48 md:h-64 object-cover opacity-50"
                 />
             </div>
 
