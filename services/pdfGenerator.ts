@@ -241,7 +241,7 @@ export const generatePortfolioHTML = (entries: JournalEntry[], competenciesChart
         <head>
             <meta charset="UTF-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <title>Portafolio - Mi Diario de Campo PE</title>
+            <title>Portafolio - Mi Diario de Campo</title>
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -259,7 +259,7 @@ export const generatePortfolioHTML = (entries: JournalEntry[], competenciesChart
             <div class="max-w-5xl mx-auto">
                 <div class="mb-8 text-center">
                     <h1 class="text-4xl font-bold text-slate-800">Portafolio Profesional</h1>
-                    <p class="mt-2 text-slate-600">Mi Diario de Campo PE</p>
+                    <p class="mt-2 text-slate-600">Mi Diario de Campo</p>
                     <p class="text-md text-slate-500">${userInfo.name} ${userInfo.surname}</p>
                     <p class="text-sm text-slate-500 mt-2">Generado el: ${new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>

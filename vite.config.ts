@@ -15,8 +15,8 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: 'autoUpdate',
         manifest: {
-          name: 'Mi Diario de Campo PE',
-          short_name: 'Diario PE',
+          name: 'Mi Diario de Campo',
+          short_name: 'Diario',
           description: 'Una herramienta integral para futuros docentes de Educación Física para registrar experiencias, reflexionar sobre la práctica, establecer metas profesionales, y conectar con la teoría del curso. Incluye soporte para etiquetas, competencias, adjuntos de imagen y exportación.',
           theme_color: '#fecdd3',
           background_color: '#f0fdf4',

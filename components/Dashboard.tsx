@@ -105,7 +105,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setView, entries, goals }) => {
 
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <p className="text-slate-600 leading-relaxed">
-                    Mi Diario de Campo PE es una aplicación web integral y moderna, diseñada específicamente para futuros docentes de Educación Física. Su propósito es ser una herramienta digital centralizada para documentar, analizar y reflexionar sobre las experiencias prácticas, conectando de manera efectiva la teoría académica con el ejercicio docente en el campo.
+                    Mi Diario de Campo es una aplicación web integral y moderna, diseñada específicamente para futuros docentes de Educación Física. Su propósito es ser una herramienta digital centralizada para documentar, analizar y reflexionar sobre las experiencias prácticas, conectando de manera efectiva la teoría académica con el ejercicio docente en el campo.
                 </p>
             </div>
             
